@@ -16,7 +16,9 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
+        // 파라미터에 @Auth 어노테이션 붙어 있는지 확인
         boolean hasAuthAnnotation = parameter.getParameterAnnotation(Auth.class) != null;
+        // 파라미터 타입이 AuthUser 클래스인지 확인
         boolean isAuthUserType = parameter.getParameterType().equals(AuthUser.class);
 
         // @Auth 어노테이션과 AuthUser 타입이 함께 사용되지 않은 경우 예외 발생
@@ -34,12 +36,16 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
             NativeWebRequest webRequest,
             @Nullable WebDataBinderFactory binderFactory
     ) {
+        // Http 요청 객체를 가져온다
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
 
-        // JwtFilter 에서 set 한 userId, email, userRole 값을 가져옴
+        // JwtFilter 에서 request.setAttribute로 저장해둔 값들을 꺼내온다
         Long userId = (Long) request.getAttribute("userId");
         String email = (String) request.getAttribute("email");
-        UserRole userRole = UserRole.of((String) request.getAttribute("userRole"));
+        String userRoleStr = (String) request.getAttribute("userRole");
+
+        // String을 Enum으로 변환
+        UserRole userRole = UserRole.of(userRoleStr);
 
         return new AuthUser(userId, email, userRole);
     }
